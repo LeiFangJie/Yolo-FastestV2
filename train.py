@@ -52,7 +52,8 @@ if __name__ == '__main__':
     val_dataset = utils.datasets.TensorDataset(cfg["val"], cfg["width"], cfg["height"], imgaug = False)
 
     batch_size = int(cfg["batch_size"] / cfg["subdivisions"])
-    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
+    # Windows shared-memory mappings are limited; use the main process for loading.
+    nw = 0
     # 训练集
     train_dataloader = torch.utils.data.DataLoader(train_dataset,
                                                    batch_size=batch_size,
@@ -61,7 +62,7 @@ if __name__ == '__main__':
                                                    num_workers=nw,
                                                    pin_memory=True,
                                                    drop_last=True,
-                                                   persistent_workers=True
+                                                   persistent_workers=False
                                                    )
     #验证集
     val_dataloader = torch.utils.data.DataLoader(val_dataset,
@@ -71,7 +72,7 @@ if __name__ == '__main__':
                                                  num_workers=nw,
                                                  pin_memory=True,
                                                  drop_last=False,
-                                                 persistent_workers=True
+                                                 persistent_workers=False
                                                  )
 
     # 指定后端设备CUDA&CPU
@@ -107,6 +108,7 @@ if __name__ == '__main__':
                                                gamma=0.1)
 
     best_ap50_95 = float("-inf")
+    best_epoch = None
     os.makedirs("weights", exist_ok=True)
 
     print('Starting training for %g epochs...' % cfg["epochs"])
@@ -168,8 +170,12 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), checkpoint_path)
             if metrics["ap50_95"] > best_ap50_95:
                 best_ap50_95 = metrics["ap50_95"]
+                best_epoch = epoch
                 torch.save(model.state_dict(), "weights/best.pt")
                 print("Updated weights/best.pt with valid AP50-95:%f" % best_ap50_95)
 
         # 学习率调整
         scheduler.step()
+
+    print("Training summary: best valid AP50-95:%f at epoch:%d, checkpoint:weights/best.pt" %
+          (best_ap50_95, best_epoch))

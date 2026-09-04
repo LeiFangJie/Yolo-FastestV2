@@ -35,7 +35,7 @@ if __name__ == "__main__":
     assert os.path.exists(annotation_path), "请指定正确的COCO标注路径"
 
     batch_size = int(cfg["batch_size"] / cfg["subdivisions"])
-    workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
+    workers = 0
     dataset = utils.datasets.TensorDataset(dataset_path, cfg["width"], cfg["height"], imgaug=False)
     dataloader = torch.utils.data.DataLoader(
         dataset,
