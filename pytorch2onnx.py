@@ -66,7 +66,8 @@ if __name__ == '__main__':
     cfg = utils.utils.load_datafile(opt.data)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.detector.Detector(cfg["classes"], cfg["anchor_num"], True, True).to(device)
+    # Export the native six raw NCHW branches; post-processing stays external.
+    model = model.detector.Detector(cfg["classes"], cfg["anchor_num"], True, False).to(device)
     model.load_state_dict(torch.load(opt.weights, map_location=device))
     #sets the module in eval node
     model.eval()
@@ -80,7 +81,8 @@ if __name__ == '__main__':
                      export_params=True,        # store the trained parameter weights inside the model file
                      opset_version=9,           # the ONNX version to export the model to
                      do_constant_folding=True,  # whether to execute constant folding for optimization
-                     dynamo=False)              # use the legacy exporter to preserve opset 9
+                     dynamo=False,               # use the legacy exporter to preserve opset 9
+                     output_names=["reg_26", "obj_26", "cls_26", "reg_13", "obj_13", "cls_13"])
     remove_initializer_identity_nodes(opt.output)
 
 #python pytorch2onnx.py --data data/coco.data --weights weights/best.pt --output wildlife_fused_convselect_opset9.onnx

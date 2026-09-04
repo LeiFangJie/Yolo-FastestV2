@@ -39,8 +39,10 @@ def load_compatible_pretrained_weights(model, checkpoint_path, device):
 if __name__ == '__main__':
     # 指定训练配置文件
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='',
+    parser.add_argument('--data', type=str, default='data/coco.data',
                         help='Specify training profile *.data')
+    parser.add_argument('--workers', type=int, default=4,
+                        help='DataLoader worker processes (use 0 if multiprocessing is unavailable)')
     opt = parser.parse_args()
     cfg = utils.utils.load_datafile(opt.data)
 
@@ -52,8 +54,8 @@ if __name__ == '__main__':
     val_dataset = utils.datasets.TensorDataset(cfg["val"], cfg["width"], cfg["height"], imgaug = False)
 
     batch_size = int(cfg["batch_size"] / cfg["subdivisions"])
-    # Windows shared-memory mappings are limited; use the main process for loading.
-    nw = 0
+    # A small worker pool keeps image decoding/augmentation off the training process.
+    nw = max(0, opt.workers)
     # 训练集
     train_dataloader = torch.utils.data.DataLoader(train_dataset,
                                                    batch_size=batch_size,
@@ -62,7 +64,7 @@ if __name__ == '__main__':
                                                    num_workers=nw,
                                                    pin_memory=True,
                                                    drop_last=True,
-                                                   persistent_workers=False
+                                                   persistent_workers=nw > 0
                                                    )
     #验证集
     val_dataloader = torch.utils.data.DataLoader(val_dataset,
@@ -72,7 +74,7 @@ if __name__ == '__main__':
                                                  num_workers=nw,
                                                  pin_memory=True,
                                                  drop_last=False,
-                                                 persistent_workers=False
+                                                 persistent_workers=nw > 0
                                                  )
 
     # 指定后端设备CUDA&CPU

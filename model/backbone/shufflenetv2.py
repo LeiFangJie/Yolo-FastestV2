@@ -133,7 +133,7 @@ class ShuffleNetV2(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
         stage_names = ["stage2", "stage3", "stage4"]
         for idxstage in range(len(self.stage_repeats)):

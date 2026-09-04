@@ -11,8 +11,8 @@ learning_rate=0.001
 [model-configure]
 pre_weights=./modelzoo/coco2017-0.241078ap-model.pth
 classes=4
-width=352
-height=352
+width=416
+height=416
 anchor_num=3
 anchors=41.47,61.69, 84.17,116.76, 106.11,230.36, 159.28,161.53, 191.68,257.35, 280.38,280.09
 
