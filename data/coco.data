@@ -19,4 +19,7 @@ anchors=41.47,61.69, 84.17,116.76, 106.11,230.36, 159.28,161.53, 191.68,257.35, 
 [data-configure]
 train=./data/wildlife/train.txt
 val=./data/wildlife/valid.txt
+test=./data/wildlife/test.txt
 names=./data/wildlife/wildlife.names
+val_annotations=./data/wildlife/annotations/valid.json
+test_annotations=./data/wildlife/annotations/test.json
